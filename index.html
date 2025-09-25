@@ -15,65 +15,84 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <style>
-    html, body { height: 100%; margin: 0; }
+    :root{
+      --green-50:#f0fdf4;   /* 아주 연한 연두 배경 */
+      --green-100:#dcfce7;
+      --green-200:#bbf7d0;
+      --green-300:#86efac;
+      --green-400:#4ade80;
+      --green-500:#22c55e;  /* 메인 연두 */
+      --green-700:#15803d;  /* 진한 연두(포커스) */
+      --ink:#0b1b13;        /* 잉크색 텍스트 */
+    }
+    html, body { height: 100%; margin: 0; background: var(--green-50); }
     #map { height: 100%; width: 100%; }
 
     /* 상단 좌측 타이틀 */
     .map-title {
       position: absolute; z-index: 1000; left: 12px; top: 12px;
-      background: rgba(255,255,255,.9); backdrop-filter: saturate(1.1) blur(2px);
-      border-radius: 12px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
-      font: 600 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111;
+      background: rgba(240,253,244,.95);
+      border: 1px solid var(--green-200);
+      border-radius: 12px; padding: 10px 12px;
+      box-shadow: 0 2px 10px rgba(21,128,61,.08);
+      font: 700 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--ink);
     }
 
     /* 상단 우측 토글 컨트롤 */
     .map-controls {
       position: absolute; z-index: 1000; right: 12px; top: 12px;
       display: flex; gap: 8px; align-items: center;
-      background: rgba(255,255,255,.9); border-radius: 12px; padding: 8px 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.06); font: 500 13px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: rgba(240,253,244,.95);
+      border: 1px solid var(--green-200);
+      border-radius: 12px; padding: 8px 10px;
+      box-shadow: 0 2px 10px rgba(21,128,61,.08);
+      font: 500 13px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--ink);
     }
     .btn {
-      border: 1px solid #ddd; border-radius: 10px; padding: 8px 10px; cursor: pointer; user-select: none;
-      background: #fff; color: #111;
+      border: 1px solid var(--green-200);
+      border-radius: 10px; padding: 8px 10px; cursor: pointer; user-select: none;
+      background: white; color: var(--ink);
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
     }
-    .btn.active { border-color: #111; font-weight: 700; }
+    .btn:hover { transform: translateY(-1px); background: var(--green-100); }
+    .btn.active { border-color: var(--green-500); box-shadow: 0 0 0 2px var(--green-100) inset; font-weight: 700; }
 
-    /* 팝업 타이포 최소화 */
+    /* 팝업 */
     .leaflet-popup-content { margin: 8px 10px; }
-    .leaflet-popup-content b { font-size: 14px; }
-    .leaflet-popup-content small { color:#555; }
+    .leaflet-popup-content b { font-size: 14px; color: var(--ink); }
+    .leaflet-popup-content small { color:#2b4739; }
 
-    /* 모노톤(단색) 느낌으로 타일 그레이스케일 */
-    .leaflet-tile { filter: grayscale(100%) contrast(1.05) brightness(0.97); }
-
-    /* 자전거 아이콘(divIcon, 고해상도 글리프) */
+    /* 🚲 자전거 아이콘 (divIcon) */
     .bike-pin {
       width: 28px; height: 28px; border-radius: 50%;
-      background: #111; color: #fff; display:flex; align-items:center; justify-content:center;
-      font-size: 16px; line-height: 1; box-shadow: 0 1px 6px rgba(0,0,0,.2);
+      background: var(--green-500); color: #fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 16px; line-height: 1; box-shadow: 0 2px 8px rgba(21,128,61,.30);
       transform: translate(-14px, -14px); /* 중앙 정렬 */
       border: 2px solid #fff;
     }
 
-    /* 클러스터 색도 모노톤 */
+    /* 클러스터도 연두색 계열로 */
     .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
-      background: #111; color: #fff; border: 2px solid #fff;
+      background: var(--green-400); color: #0b1b13; border: 2px solid #fff;
     }
     .marker-cluster div {
-      background: #111; color: #fff; border-radius: 50%; border: none;
-      font: 700 12px/28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--green-500); color: #fff; border-radius: 50%; border: 2px solid #fff;
+      font: 800 12px/26px system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       width: 28px; height: 28px;
+      box-shadow: 0 2px 8px rgba(21,128,61,.25);
     }
 
     @media (prefers-color-scheme: dark) {
-      .map-title, .map-controls { background: rgba(28,28,28,.9); color: #e8e8e8; }
-      .btn { background:#1e1e1e; border-color:#333; color:#e8e8e8; }
-      .btn.active { border-color:#e8e8e8; }
-      .leaflet-tile { filter: grayscale(100%) contrast(1.05) brightness(0.8); }
-      .bike-pin { background:#e8e8e8; color:#111; border-color:#1e1e1e; }
-      .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background:#e8e8e8; color:#111; border-color:#1e1e1e; }
-      .marker-cluster div { background:#e8e8e8; color:#111; }
+      html, body { background: #0a1510; }
+      .map-title, .map-controls { background: rgba(12,28,20,.9); border-color:#163d2a; color:#e8f6ed; }
+      .btn { background:#0f2419; border-color:#163d2a; color:#e8f6ed; }
+      .btn.active { border-color:#34d399; box-shadow: 0 0 0 2px rgba(52,211,153,.12) inset; }
+      .bike-pin { background:#34d399; color:#0a1510; border-color:#0f2419; }
+      .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background:#22c55e; border-color:#0f2419; }
+      .marker-cluster div { background:#34d399; color:#0a1510; border-color:#0f2419; }
     }
   </style>
 </head>
@@ -87,28 +106,27 @@
   </div>
 
   <script>
-    // 1) 지도 생성 (Carto Positron 타일: 미니멀 라이트톤)
+    // 1) 지도: 밝은 미니멀 타일(라이트 그린 톤에 잘 어울림)
     const map = L.map('map', { center: [37.5665, 126.9780], zoom: 12, scrollWheelZoom: true });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(map);
 
-    L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-      {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap &copy; CARTO'
-      }
-    ).addTo(map);
-
-    // 2) 레이어 준비: 클러스터 / 평면(개별)
+    // 2) 레이어: 클러스터 / 개별
     const clusterLayer = L.markerClusterGroup({ showCoverageOnHover: false, spiderfyOnMaxZoom: true });
     const plainLayer   = L.layerGroup();
 
-    // 3) 공용 아이콘(🚲) - divIcon으로 심플, 고대비
-    const bikeIcon = (function(){
-      const html = '🚲';
-      return L.divIcon({ className: 'bike-pin', html, iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-12] });
-    })();
+    // 3) 🚲 아이콘
+    const bikeIcon = L.divIcon({
+      className: 'bike-pin',
+      html: '🚲',
+      iconSize: [28,28],
+      iconAnchor: [14,14],
+      popupAnchor: [0,-12]
+    });
 
-    // 4) 데이터 로드 (같은 폴더의 stations.json; 최상위 "배열형")
+    // 4) 데이터 로드 (같은 폴더의 stations.json; 최상위 배열)
     fetch('stations.json', { cache: 'no-store' })
       .then(r => {
         if (!r.ok) throw new Error('stations.json을 불러오지 못했습니다.');
@@ -116,10 +134,8 @@
       })
       .then(stores => {
         const bounds = [];
-        // 마커를 두 레이어 모두에 생성(중복 렌더 방지 위해 한 번에 만들고 각각 add)
         stores.forEach(s => {
           if (!Number.isFinite(s.lat) || !Number.isFinite(s.lng)) return;
-
           const popup = `
             <div>
               <b>${esc(s.name ?? '')}</b><br/>
@@ -130,20 +146,18 @@
               <a href="https://www.google.com/maps?q=${s.lat},${s.lng}" target="_blank" rel="noopener">구글지도 열기</a>
             </div>`;
 
-          const marker = L.marker([s.lat, s.lng], { icon: bikeIcon }).bindPopup(popup);
-          // 두 레이어에 동일 마커를 각각 만들어 넣는 대신, 성능/메모리 절약을 위해 clone 대신 새 인스턴스 생성
-          const marker2 = L.marker([s.lat, s.lng], { icon: bikeIcon }).bindPopup(popup);
-
-          clusterLayer.addLayer(marker);
-          plainLayer.addLayer(marker2);
+          const m1 = L.marker([s.lat, s.lng], { icon: bikeIcon }).bindPopup(popup);
+          const m2 = L.marker([s.lat, s.lng], { icon: bikeIcon }).bindPopup(popup);
+          clusterLayer.addLayer(m1);
+          plainLayer.addLayer(m2);
           bounds.push([s.lat, s.lng]);
         });
 
-        // 초기 상태: 클러스터 표시
+        // 초기: 클러스터
         map.addLayer(clusterLayer);
         if (bounds.length) map.fitBounds(bounds, { padding: [24,24] });
 
-        // 토글 버튼 연결
+        // 토글
         const btnCluster = document.getElementById('btn-cluster');
         const btnPlain   = document.getElementById('btn-plain');
 
@@ -168,9 +182,11 @@
         alert('데이터 로딩 오류: ' + err.message);
       });
 
-    // 유틸: XSS 방지 이스케이프
+    // 유틸: XSS 방지
     function esc(str) {
-      return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      return String(str).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
     }
   </script>
 </body>
